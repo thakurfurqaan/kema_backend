@@ -17,16 +17,58 @@ class PaymentRequestViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         return super().perform_create(serializer)
 
+    # Payment API - Pay
     @action(detail=True, methods=["post"])
-    def process(self, request, pk=None):
+    def pay(self, request, pk=None):
         payment_request: PaymentRequest = self.get_object()
-        payment_request.status = PaymentRequest.StatusChoices.PAID
-        payment_request.save()
+        if payment_request.status != PaymentRequest.StatusChoices.PENDING:
+            return Response(
+                {"status": "Payment already processed"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        self._update_payment_request_status(
+            payment_request, PaymentRequest.StatusChoices.PAID
+        )
         self._create_transaction(payment_request)
         return Response({"status": "Payment processed"}, status=status.HTTP_200_OK)
 
+    # Payment API - Refund
+    @action(detail=True, methods=["post"])
+    def refund(self, request, pk=None):
+        payment_request: PaymentRequest = self.get_object()
+        if payment_request.status != PaymentRequest.StatusChoices.PAID:
+            return Response(
+                {"status": "Payment not processed yet"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        # Payment Gateway Refund logic
+        self._update_payment_request_status(
+            payment_request, PaymentRequest.StatusChoices.REFUNDED
+        )
+        return Response({"status": "Payment refunded"}, status=status.HTTP_200_OK)
+
+    # Payment API - Status
+    @action(detail=True, methods=["get"])
+    def status(self, request, pk=None):
+        payment_request: PaymentRequest = self.get_object()
+        return Response({"status": payment_request.status}, status=status.HTTP_200_OK)
+
     def _create_transaction(self, payment_request: PaymentRequest):
         return Transaction.objects.create(payment=payment_request, status="completed")
+
+    def _update_payment_request_status(self, payment_request, status):
+        payment_request.status = status
+        payment_request.save()
+
+
+class PaymentGatewayCallback(viewsets.ViewSet):
+    @action(detail=False, methods=["post"])
+    def callback(self, request):
+        payment_request_id = request.data.get("payment_request_id")
+        payment_request = PaymentRequest.objects.get(id=payment_request_id)
+        payment_request.status = PaymentRequest.StatusChoices.PAID
+        payment_request.save()
+        return Response({"status": "Payment processed"}, status=status.HTTP_200_OK)
 
 
 class TransactionViewSet(viewsets.ModelViewSet):

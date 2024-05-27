@@ -22,6 +22,7 @@ class PaymentRequest(BaseModel):
         PENDING = "PENDING", "Pending"
         PAID = "PAID", "Paid"
         CANCELLED = "CANCELLED", "Cancelled"
+        REFUNDED = "REFUNDED", "Refunded"
         EXPIRED = "EXPIRED", "Expired"
 
     status = models.CharField(
