@@ -1,9 +1,10 @@
 ## Running Locally using Docker
 - Run: `docker-compose up --build`
+- Run (in new terminal): `docker exec -it kema_backend-web-1 /bin/bash`
+- Run (in the same terminal as above): `python manage.py setup`
 
 ## Initial Setup
-- Launch Terminal: `docker exec -it kema_backend-web-1 /bin/bash`
-- Run: `python manage.py setup`
+
 
 
 ## Technical Future Scope
