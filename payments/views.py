@@ -3,12 +3,16 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .models import Currency, PaymentRequest, Transaction
-from .serializers import CurrencySerializer, PaymentSerializer, TransactionSerializer
+from .serializers import (
+    CurrencySerializer,
+    PaymentRequestSerializer,
+    TransactionSerializer,
+)
 
 
 class PaymentRequestViewSet(viewsets.ModelViewSet):
     queryset = PaymentRequest.objects.all()
-    serializer_class = PaymentSerializer
+    serializer_class = PaymentRequestSerializer
 
     def perform_create(self, serializer):
         return super().perform_create(serializer)

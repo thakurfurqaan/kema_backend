@@ -1,12 +1,26 @@
 from rest_framework import serializers
 
+from merchants.serializers import MerchantSerializer
+
 from .models import Currency, PaymentRequest, Transaction
 
 
-class PaymentSerializer(serializers.ModelSerializer):
+class PaymentRequestSerializer(serializers.ModelSerializer):
+    merchant_details = MerchantSerializer(source="merchant", read_only=True)
+    currency_code = serializers.CharField(source="currency.code", read_only=True)
+
     class Meta:
         model = PaymentRequest
-        fields = ["id", "merchant", "amount", "currency", "status", "created_at"]
+        fields = [
+            "id",
+            "merchant",
+            "amount",
+            "currency",
+            "status",
+            "created_at",
+            "merchant_details",
+            "currency_code",
+        ]
 
 
 class TransactionSerializer(serializers.ModelSerializer):
