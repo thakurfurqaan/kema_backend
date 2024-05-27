@@ -14,9 +14,6 @@ class PaymentRequestViewSet(viewsets.ModelViewSet):
     queryset = PaymentRequest.objects.all()
     serializer_class = PaymentRequestSerializer
 
-    def perform_create(self, serializer):
-        return super().perform_create(serializer)
-
     # Payment API - Pay
     @action(detail=True, methods=["post"])
     def pay(self, request, pk=None):
@@ -26,10 +23,26 @@ class PaymentRequestViewSet(viewsets.ModelViewSet):
                 {"status": "Payment already processed"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+        card_number = request.data.get("cardNumber")
+        email = request.data.get("email")
+
+        if not card_number or not email:
+            return Response(
+                {"error": "Card number and email are required."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Save card details and email
+        payment_request.customer_card_number = card_number
+        payment_request.customer_email = email
+        payment_request.status = PaymentRequest.StatusChoices.PAID
+        payment_request.save()
+
         self._update_payment_request_status(
             payment_request, PaymentRequest.StatusChoices.PAID
         )
-        self._create_transaction(payment_request)
+        self._create_completed_transaction(payment_request)
         return Response({"status": "Payment processed"}, status=status.HTTP_200_OK)
 
     # Payment API - Refund
@@ -53,8 +66,10 @@ class PaymentRequestViewSet(viewsets.ModelViewSet):
         payment_request: PaymentRequest = self.get_object()
         return Response({"status": payment_request.status}, status=status.HTTP_200_OK)
 
-    def _create_transaction(self, payment_request: PaymentRequest):
-        return Transaction.objects.create(payment=payment_request, status="completed")
+    def _create_completed_transaction(self, payment_request: PaymentRequest):
+        return Transaction.objects.create(
+            payment=payment_request, status=Transaction.StatusChoices.COMPLETED
+        )
 
     def _update_payment_request_status(self, payment_request, status):
         payment_request.status = status

@@ -31,6 +31,8 @@ class PaymentRequest(BaseModel):
         default=StatusChoices.PENDING,
     )
     created_at = models.DateTimeField(auto_now_add=True)
+    customer_card_number = models.CharField(max_length=16, null=True, blank=True)
+    customer_email = models.EmailField(null=True, blank=True)
 
     @property
     def payment_link(self):
@@ -43,4 +45,14 @@ class PaymentRequest(BaseModel):
 
 class Transaction(BaseModel):
     payment = models.ForeignKey(PaymentRequest, on_delete=models.CASCADE)
-    status = models.CharField(max_length=20)
+
+    class StatusChoices(models.TextChoices):
+        CANCELLED = "CANCELLED", "Cancelled"
+        REFUNDED = "REFUNDED", "Refunded"
+        COMPLETED = "COMPLETED", "Completed"
+
+    status = models.CharField(
+        max_length=20,
+        choices=StatusChoices.choices,
+        default=StatusChoices.COMPLETED,
+    )

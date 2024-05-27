@@ -20,6 +20,8 @@ class PaymentRequestSerializer(serializers.ModelSerializer):
             "created_at",
             "merchant_details",
             "currency_code",
+            "customer_email",
+            "customer_card_number",
         ]
 
 
