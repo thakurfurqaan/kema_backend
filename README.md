@@ -4,9 +4,6 @@
 - Run (in T2): `python manage.py migrate`
 - Run (in T2): `python manage.py setup`
 
-## Initial Setup
-
-
 
 ## Technical Future Scope
 - Rate limits for creating payment requests.
@@ -15,3 +12,5 @@
 
 ## NOTES
 -  `.env` file has not been gitignored for the sake of the assignment.
+- I usually use a service layer for medium to large scale apps for the business logic so that it could be reused over several interfaces and APIs.
+- For payment gateway integrations, we can implement callback API endpoints to handle the final state of the payment request

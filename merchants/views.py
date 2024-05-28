@@ -5,5 +5,7 @@ from .serializers import MerchantSerializer
 
 
 class MerchantViewSet(viewsets.ModelViewSet):
+    # Would normally require a permission class: IsAuthenticated with other custom permissions.
+
     queryset = Merchant.objects.all()
     serializer_class = MerchantSerializer
