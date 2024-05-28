@@ -20,12 +20,14 @@ class PaymentRequestViewSet(viewsets.ModelViewSet):
         payment_request: PaymentRequest = self.get_object()
         if payment_request.status != PaymentRequest.StatusChoices.PENDING:
             return Response(
-                {"status": "Payment already processed"},
+                {"status": "Payment already processed or cancelled."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         card_number = request.data.get("cardNumber")
         email = request.data.get("email")
+
+        self._update_customer_details(payment_request, card_number, email)
 
         if not card_number or not email:
             return Response(
@@ -33,17 +35,19 @@ class PaymentRequestViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Save card details and email
-        payment_request.customer_card_number = card_number
-        payment_request.customer_email = email
-        payment_request.status = PaymentRequest.StatusChoices.PAID
-        payment_request.save()
-
         self._update_payment_request_status(
             payment_request, PaymentRequest.StatusChoices.PAID
         )
         self._create_completed_transaction(payment_request)
         return Response({"status": "Payment processed"}, status=status.HTTP_200_OK)
+
+    def _update_customer_details(
+        self, payment_request: PaymentRequest, card_number, email
+    ):
+        payment_request.customer_card_number = card_number
+        payment_request.customer_email = email
+        payment_request.status = PaymentRequest.StatusChoices.PAID
+        payment_request.save()
 
     # Payment API - Refund
     @action(detail=True, methods=["post"])

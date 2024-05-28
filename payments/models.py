@@ -14,6 +14,10 @@ class Currency(BaseModel):
 
 
 class PaymentRequest(BaseModel):
+    """
+    This model represents a payment request that has been made by a merchant.
+    """
+
     merchant = models.ForeignKey(Merchant, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
@@ -36,7 +40,7 @@ class PaymentRequest(BaseModel):
 
     @property
     def payment_link(self):
-        return f"{settings.FRONTEND_URL}/payments/{self.id}/pay"
+        return f"{settings.FRONTEND_URL}/payment/{self.id}/"
 
     @property
     def qr_code(self):
@@ -44,6 +48,11 @@ class PaymentRequest(BaseModel):
 
 
 class Transaction(BaseModel):
+    """
+    This model represents a transaction that has been made for a payment request.
+    It should contain the payment gateway details as well.
+    """
+
     payment = models.ForeignKey(PaymentRequest, on_delete=models.CASCADE)
 
     class StatusChoices(models.TextChoices):
